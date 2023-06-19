@@ -35,12 +35,6 @@ while True:
         time.sleep(3)
 
 
-def find_post(id: int):
-    for p in my_posts:
-        if p["id"] == id:
-            return p
-
-
 def find_index_post(id: int):
     for i, p in enumerate(my_posts):
         if p["id"] == id:
@@ -70,7 +64,7 @@ def get_latest_post():
 
 @app.get("/posts/{id}")
 def get_posts(id: int):
-    cursor.execute(f"""SELECT * FROM POSTS WHERE ID = {id}""")
+    cursor.execute("""SELECT * FROM POSTS WHERE ID = %s""" % (id))
     post_found = cursor.fetchone()
     if not post_found:
         raise HTTPException(
@@ -93,7 +87,7 @@ def create_post(payload: Post):
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
-    index = cursor.execute(f"""SELECT ID FRoM POSTS WHERE ID = {id}""")
+    index = cursor.execute(f"""SELECT ID FROM POSTS WHERE ID = {id}""")
     if not index:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, "No posts found with the provided id."
@@ -105,12 +99,15 @@ def delete_post(id: int):
 
 @app.put("/posts/{id}")
 def update_post(id: int, payload: Post):
-    index = find_index_post(id)
-    if not index:
+    cursor.execute(
+        """UPDATE POSTS SET TITLE = %s, CONTENT = %s, IS_PUBLISHED = %s WHERE ID = %s""",
+        (payload.title, payload.content, payload.is_published, id),
+    )
+    conn.commit()
+    cursor.execute("""SELECT * FROM POSTS WHERE ID = %s""" % (id))
+    post_found = cursor.fetchone()
+    if not post_found:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, "No posts found with the provided id."
         )
-    post_dict = payload.dict()
-    post_dict["id"] = id
-    my_posts[index] = post_dict
-    return {"data": post_dict}
+    return {"data": post_found}
