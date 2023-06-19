@@ -1,10 +1,10 @@
+import time
+from typing import Optional
 from fastapi import FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
-from typing import Optional
-from random import randrange
 import psycopg
 from psycopg.rows import dict_row
-import time
+
 
 app = FastAPI()
 
