@@ -83,19 +83,25 @@ while True:
         time.sleep(3)
 
 
-def find_index_post(id: int):
-    for i, p in enumerate(my_posts):
-        if p["id"] == id:
-            return i
-
-
 @app.get("/")
 def root():
+    """
+    Returns a simple "Hello World!" message.
+
+    Returns:
+        dict: A dictionary with the "message" key and the corresponding value.
+    """
     return {"message": "Hello World!"}
 
 
 @app.get("/posts")
-def get_posts():
+def get_all_posts():
+    """
+    Retrieves all posts from the database.
+
+    Returns:
+        dict: A dictionary with the "data" key containing a list of fetched posts.
+    """
     cursor.execute("""SELECT * FROM POSTS""")
     fetched_posts = cursor.fetchall()
     return {"data": fetched_posts}
@@ -103,6 +109,13 @@ def get_posts():
 
 @app.get("/posts/latest")
 def get_latest_post():
+    """
+    Retrieves the latest post from the database.
+
+    Returns:
+        dict: A dictionary with the "data" key containing the latest post.
+              If no post is found, returns a message indicating no posts are available.
+    """
     cursor.execute("""SELECT * FROM POSTS ORDER BY CREATED_AT DESC LIMIT 1""")
     latest_post = cursor.fetchone()
     if latest_post is None:
@@ -111,7 +124,19 @@ def get_latest_post():
 
 
 @app.get("/posts/{id}")
-def get_posts(id: int):
+def get_post_from_id(id: int):
+    """
+    Retrieves a specific post based on the provided ID.
+
+    Args:
+        id (int): The ID of the post to retrieve.
+
+    Returns:
+        dict: A dictionary with the "data" key containing the post with the provided ID.
+
+    Raises:
+        HTTPException: If no post is found with the provided ID, raises a 404 Not Found error.
+    """
     cursor.execute("""SELECT * FROM POSTS WHERE ID = %s""" % (id))
     post_found = cursor.fetchone()
     if not post_found:
@@ -123,6 +148,16 @@ def get_posts(id: int):
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(payload: Post):
+    """
+    Creates a new post and saves it to the database.
+
+    Args:
+        payload (Post): The payload containing the post information.
+
+    Returns:
+        dict: A dictionary with the "data" key containing the saved post.
+
+    """
     print(payload)
     cursor.execute(
         """INSERT INTO POSTS(TITLE, CONTENT, IS_PUBLISHED) VALUES (%s, %s, %s) RETURNING *""",
@@ -135,6 +170,18 @@ def create_post(payload: Post):
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
+    """
+    Deletes a specific post from the database.
+
+    Args:
+        id (int): The ID of the post to delete.
+
+    Returns:
+        Response: A response with status code 204 indicating successful deletion.
+
+    Raises:
+        HTTPException: If no post is found with the provided ID, raises a 404 Not Found error.
+    """
     index = cursor.execute(f"""SELECT ID FROM POSTS WHERE ID = {id}""")
     if not index:
         raise HTTPException(
@@ -147,6 +194,19 @@ def delete_post(id: int):
 
 @app.put("/posts/{id}")
 def update_post(id: int, payload: Post):
+    """
+    Updates an existing post in the database.
+
+    Args:
+        id (int): The ID of the post to update.
+        payload (Post): The payload containing the updated post information.
+
+    Returns:
+        dict: A dictionary with the "data" key containing the updated post.
+
+    Raises:
+        HTTPException: If no post is found with the provided ID, raises a 404 Not Found error.
+    """
     cursor.execute(
         """UPDATE POSTS SET TITLE = %s, CONTENT = %s, IS_PUBLISHED = %s WHERE ID = %s""",
         (payload.title, payload.content, payload.is_published, id),
