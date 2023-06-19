@@ -1,3 +1,36 @@
+"""
+This module provides a FastAPI application for managing blog posts.
+
+It includes the following functionality:
+
+Connecting to a PostgreSQL database.
+Retrieving all posts, latest post, and a specific post from the database.
+Creating a new post and saving it to the database.
+Deleting a post from the database.
+Updating an existing post in the database.
+The Post class is defined as a Pydantic BaseModel, representing a blog post. It has the following attributes:
+
+title (str): The title of the blog post.
+content (str): The content of the blog post.
+is_published (Optional[bool], optional): Indicates whether the post is published or not. Defaults to True if not specified.
+The FastAPI application routes are defined as follows:
+
+GET /: Returns a simple "Hello World!" message.
+GET /posts: Retrieves all posts from the database.
+GET /posts/latest: Retrieves the latest post from the database.
+GET /posts/{id}: Retrieves a specific post based on the provided ID.
+POST /posts: Creates a new post and saves it to the database.
+DELETE /posts/{id}: Deletes a specific post from the database.
+PUT /posts/{id}: Updates an existing post in the database.
+Note: The module assumes a PostgreSQL database named "fastapi" running on the local host with the following credentials: user="postgres", password="12321". It uses the psycopg library to connect to the database and execute queries.
+
+Usage example:
+
+Start the FastAPI application using uvicorn module_name:app --reload.
+Access the application routes using a web browser or an API client like cURL or Postman.
+Please make sure to configure the PostgreSQL database and adjust the credentials according to your setup before running this module.
+"""
+
 import time
 from typing import Optional
 from fastapi import FastAPI, Response, status, HTTPException
@@ -10,6 +43,14 @@ app = FastAPI()
 
 
 class Post(BaseModel):
+    """
+    A class representing a blog post.
+    Attributes:
+    title (str): The title of the blog post.
+    content (str): The content of the blog post.
+    is_published (Optional[bool], optional): Indicates whether the post is published or not.
+        Defaults to True if not specified.
+    """
     title: str
     content: str
     is_published: Optional[bool] = True
